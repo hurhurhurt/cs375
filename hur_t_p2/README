@@ -1,0 +1,3 @@
+Java
+javac program2.java
+java program2 <inputfile> <outputfile>
