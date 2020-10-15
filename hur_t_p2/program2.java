@@ -128,15 +128,25 @@ class heap{
     }
 
     public pair earnPoints(int id, int p){
-	findContestant(id).points += p;
-	buildMinHeap();
-	return new pair(id, findContestant(id).points);
+	if (findContestant(id) != null){
+	    findContestant(id).points += p;
+	    buildMinHeap();
+	    return new pair(id, findContestant(id).points);
+	}
+	else{
+	    return new pair(id, 0, -1);
+	}
     }
 
     public pair losePoints(int id, int p){
-	findContestant(id).points -= p;
-	buildMinHeap();
-	return new pair(id, findContestant(id).points);
+	if (findContestant(id) != null){
+	    findContestant(id).points -= p;
+	    buildMinHeap();
+	    return new pair(id, findContestant(id).points);
+	}
+	else{
+	    return new pair(id, 0, -1);
+	}
     }
 
     public ArrayList<pair> showContestants(){
@@ -167,7 +177,7 @@ class heap{
 	    return new pair(id, locations[id] + 1, 1);
 	}
 	else{
-	    return new pair(0,0,-1);
+	    return new pair(id,0,-1);
 	}
     }
 
@@ -236,7 +246,12 @@ class program2{
 		    int earnPoints = Integer.valueOf(read.next().replaceAll("[<>]",""));
 		    list.add("earnPoints <" + String.valueOf(id) + "> <" + String.valueOf(earnPoints) + ">\n");
 		    pair pair = heap.earnPoints(id, earnPoints);
-		    list.add("Contestant <" + String.valueOf(pair.a) + ">'s score increased by <" + String.valueOf(earnPoints) + "> points to <" + String.valueOf(pair.b) + ">.\n");
+		    if (pair.c == -1){
+			list.add("Contestant <" + pair.a + "> is not in the extended heap.\n");
+		    }
+		    else{
+			list.add("Contestant <" + String.valueOf(pair.a) + ">'s score increased by <" + String.valueOf(earnPoints) + "> points to <" + String.valueOf(pair.b) + ">.\n");
+		    }
 		}
 
 		else if(next.equals("losePoints")){
@@ -244,7 +259,12 @@ class program2{
 		    int losePoints = Integer.valueOf(read.next().replaceAll("[<>]",""));
 		    list.add("losePoints <" + String.valueOf(id) + "> <" + String.valueOf(losePoints) + ">\n");
 		    pair pair = heap.losePoints(id, losePoints);
-		    list.add("Contestant <" + String.valueOf(pair.a) + ">'s score decreased by <" + String.valueOf(losePoints) + "> points to <" + String.valueOf(pair.b) + ">.\n");
+		    if (pair.c == -1){
+			list.add("Contestant <" + pair.a + "> is not in the extended heap.\n");
+		    }
+		    else{
+			list.add("Contestant <" + String.valueOf(pair.a) + ">'s score decreased by <" + String.valueOf(losePoints) + "> points to <" + String.valueOf(pair.b) + ">.\n");
+		    }
 		}
 
 		else if(next.equals("showContestants")){
@@ -269,8 +289,8 @@ class program2{
 		}
 
 		else if (next.equals("showLocation")){
-		    list.add("showLocation\n");
 		    int id = Integer.valueOf(read.next().replaceAll("[<>]",""));
+		    list.add("showLocation <" + id + ">\n");
 		    pair pair = heap.showLocation(id);
 			if (pair.c == 1){
 			    list.add("Contestant <" + pair.a + "> stored in extended heap location <" + pair.b + ">.\n");
