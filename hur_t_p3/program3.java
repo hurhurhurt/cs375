@@ -11,12 +11,10 @@ import java.util.Collections;
 
 class profit{
     int maxProfit;
-    int maxSize;
     ArrayList<pair> c;
 
-    profit(int p, int s, ArrayList<pair> c){
+    profit(int p, ArrayList<pair> c){
 	this.maxProfit = p;
-	this.maxSize = s;
 	this.c = c;
     }
 }
@@ -24,35 +22,39 @@ class profit{
 class pair{
     int weight;
     int profit;
+    int position;
 
-    pair(int w, int p){
+    pair(int w, int p, int po){
 	this.weight = w;
 	this.profit = p;
+	this.position = po;
     }
 
 }
 class program3{
     public static ArrayList<pair> knapsack = new ArrayList<pair>();    
     public static profit algo1(int capacity, ArrayList<pair> knapsack){
+	if (knapsack.size() == 0) return new profit(0, new ArrayList<pair>());
 	ArrayList<pair> copy = knapsack;
         Collections.sort(copy, new Comparator<pair>(){
 		@Override
 		public int compare(pair a, pair b){
-		    return -Float.compare((float) a.weight / a.profit, (float) b.weight / b.profit);
+		    return Float.compare((float) (b.profit / b.weight), (float) (a.profit / a.weight));
 		}
 	    });
 
 	ArrayList<pair> retList = new ArrayList<pair>();
 	int current = 0;
 	while (current <= capacity){
+	    if (copy.size() == 0) break;
 	    current += copy.get(0).weight;
 	    if (current > capacity) break;
 	    else{
 		retList.add(copy.remove(0));
 	    }
- 	}   
+ 	}
 	for (pair p : retList)
-	    System.out.println(p.weight + " " + p.profit);
+	    System.out.println(p.weight + " " + p.profit + " " + p.position);
 	
 	return null;
     }
@@ -74,11 +76,12 @@ class program3{
 	    while (scanner.hasNextInt()){
 		int numItems = scanner.nextInt();
 		int capacity = scanner.nextInt();
-	    
+  
 		for (int i = 0; i < numItems; i++)
-		    knapsack.add(new pair(scanner.nextInt(), scanner.nextInt()));
+		    knapsack.add(new pair(scanner.nextInt(), scanner.nextInt(), i+1));
 
 		algo1(capacity, knapsack);
+		//knapsack.clear();
 		
 
 
