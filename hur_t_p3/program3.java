@@ -10,12 +10,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.Collections;
 
 class profit{
-    int maxProfit;
-    ArrayList<pair> c;
+    int totalProfit;
+    ArrayList<Integer> positions;
 
-    profit(int p, ArrayList<pair> c){
-	this.maxProfit = p;
-	this.c = c;
+    profit(int t, ArrayList<Integer> p){
+	this.totalProfit = t;
+	this.positions = p;
     }
 }
 
@@ -34,7 +34,7 @@ class pair{
 class program3{
     public static ArrayList<pair> knapsack = new ArrayList<pair>();    
     public static profit algo1(int capacity, ArrayList<pair> knapsack){
-	if (knapsack.size() == 0) return new profit(0, new ArrayList<pair>());
+	if (knapsack.size() == 0) return new profit(0, new ArrayList<Integer>());
 	ArrayList<pair> copy = knapsack;
         Collections.sort(copy, new Comparator<pair>(){
 		@Override
@@ -42,24 +42,33 @@ class program3{
 		    return Float.compare((float) (b.profit / b.weight), (float) (a.profit / a.weight));
 		}
 	    });
-
+	
 	ArrayList<pair> retList = new ArrayList<pair>();
 	int current = 0;
+	int total = 0;
 	while (current <= capacity){
 	    if (copy.size() == 0) break;
+	    if (current + copy.get(0).weight > capacity){
+		copy.remove(0);
+		continue;
+	    }
 	    current += copy.get(0).weight;
 	    if (current > capacity) break;
 	    else{
+		total += copy.get(0).profit;
 		retList.add(copy.remove(0));
 	    }
  	}
 	for (pair p : retList)
 	    System.out.println(p.weight + " " + p.profit + " " + p.position);
-	
+
+	System.out.println(total);
 	return null;
     }
 
     public profit algo2(int capacity, ArrayList<pair> knapsack){
+	profit algo1 = algo1(capacity, knapsack);
+
 	return null;
     }
 
@@ -81,7 +90,7 @@ class program3{
 		    knapsack.add(new pair(scanner.nextInt(), scanner.nextInt(), i+1));
 
 		algo1(capacity, knapsack);
-		//knapsack.clear();
+		knapsack.clear();
 		
 
 
