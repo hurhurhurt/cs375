@@ -35,7 +35,8 @@ class program3{
     public static ArrayList<pair> knapsack = new ArrayList<pair>();    
     public static profit algo1(int capacity, ArrayList<pair> knapsack){
 	if (knapsack.size() == 0) return new profit(0, new ArrayList<Integer>());
-	ArrayList<pair> copy = knapsack;
+	ArrayList<pair> copy = new ArrayList<>();
+	for (pair p : knapsack) copy.add(p);
         Collections.sort(copy, new Comparator<pair>(){
 		@Override
 		public int compare(pair a, pair b){
@@ -43,7 +44,7 @@ class program3{
 		}
 	    });
 	
-	ArrayList<pair> retList = new ArrayList<pair>();
+	ArrayList<Integer> retList = new ArrayList<Integer>();
 	int current = 0;
 	int total = 0;
 	while (current <= capacity){
@@ -56,20 +57,33 @@ class program3{
 	    if (current > capacity) break;
 	    else{
 		total += copy.get(0).profit;
-		retList.add(copy.remove(0));
+	        retList.add(copy.get(0).position);
+		copy.remove(0);
 	    }
  	}
-	for (pair p : retList)
-	    System.out.println(p.weight + " " + p.profit + " " + p.position);
-
-	System.out.println(total);
-	return null;
+	return new profit(total, retList);
     }
 
-    public profit algo2(int capacity, ArrayList<pair> knapsack){
+    public static profit algo2(int capacity, ArrayList<pair> knapsack){
 	profit algo1 = algo1(capacity, knapsack);
-
-	return null;
+	pair bestSoFar = new pair(0,0,0);
+	for (pair p : knapsack){
+	    if (p.weight <= capacity){
+		if (p.profit > bestSoFar.profit){
+		    bestSoFar.profit = p.profit;
+		    bestSoFar.position = p.position;
+		}
+	    }
+	}
+	
+	if (algo1.totalProfit >= bestSoFar.profit){
+	    System.out.println(algo1.totalProfit);
+	    return algo1;
+	}
+	else{
+	    System.out.println(bestSoFar.profit);
+	    return new profit(bestSoFar.profit, new ArrayList<>(Arrays.asList(bestSoFar.position)));
+	}
     }
 
     public profit backtracking(int capacity, ArrayList<pair> knapsack){
@@ -89,8 +103,10 @@ class program3{
 		for (int i = 0; i < numItems; i++)
 		    knapsack.add(new pair(scanner.nextInt(), scanner.nextInt(), i+1));
 
-		algo1(capacity, knapsack);
-		knapsack.clear();
+	        profit p = algo1(capacity, knapsack);
+		System.out.println(p.totalProfit);
+		algo2(capacity, knapsack);
+		//knapsack.clear();
 		
 
 
