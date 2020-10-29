@@ -32,7 +32,11 @@ class pair{
 
 }
 class program3{
-    public static ArrayList<pair> knapsack = new ArrayList<pair>();    
+    public static ArrayList<String> bestSet = new ArrayList<String>();
+    public static ArrayList<String> include = new ArrayList<String>();
+    public static int bestNum = -1;
+    public static int maxProfit = -1;
+    
     public static profit algo1(int capacity, ArrayList<pair> knapsack){
 	if (knapsack.size() == 0) return new profit(0, new ArrayList<Integer>());
 	ArrayList<pair> copy = new ArrayList<>();
@@ -76,7 +80,7 @@ class program3{
 	    }
 	}
 	
-	if (algo1.totalProfit >= bestSoFar.profit){
+	if (algo1.totalProfit > bestSoFar.profit){
 	    System.out.println(algo1.totalProfit);
 	    return algo1;
 	}
@@ -85,32 +89,107 @@ class program3{
 	    return new profit(bestSoFar.profit, new ArrayList<>(Arrays.asList(bestSoFar.position)));
 	}
     }
+    
+    public static float upperBound(int index, int weight, int profit, ArrayList<pair> copy, int capacity, int size){
+        float bound = profit;
+	ArrayList<Float> x = new ArrayList<Float>();
 
-    public profit backtracking(int capacity, ArrayList<pair> knapsack){
-	return null;
+	for (int i = 0; i < size; i++)
+	    x.add((float) -1);
+	for (int j = index; j < size; j++)
+	    x.set(j, (float) 0);
+
+	while (weight < capacity && index < size){
+	    if (weight + copy.get(index).weight <= capacity){
+		x.set(index, (float) 1);
+		weight += copy.get(index).weight;
+		bound += copy.get(index).profit;
+	    }
+	    else{
+		x.set(index, ((float)(capacity - weight) / copy.get(index).weight));
+		weight = capacity;
+		bound += (float) copy.get(index).profit * x.get(index);
+	    }
+	    index +=1;
+	}
+	return bound;
     }
-   
+    
+    public static boolean promising(int i, int weight, int profit, ArrayList<pair> copy, int capacity, int size){
+	if (weight >= capacity) return false;
+	float bound = upperBound(i+1, weight, profit, copy, capacity, size);
+	return (bound > maxProfit); 
+    }
+    
+    public static void knapsack(int index, int profit, int weight, ArrayList<pair> copy, int capacity, int size){
+	if (weight <= capacity && profit > maxProfit){
+	    maxProfit = profit;
+	    bestNum = index;
+	    bestSet = include;
+	}
+	if (promising(index, weight, profit, copy, capacity, size)){
+	    include.set(index+1, "yes");
+	    knapsack(index+1, profit + copy.get(index+1).profit, weight + copy.get(index+1).weight, copy, capacity, size);
+	    include.set(index+1, "no");
+	    knapsack(index+1, profit, weight, copy, capacity, size);
+	}
+    }
+    
+    public static void backtracking(int capacity, int size, ArrayList<pair> copy){	
+	bestNum = 0;
+	maxProfit = algo2(capacity, copy).totalProfit;
+	knapsack(-1,0,0, copy, capacity, size);
+	System.out.println("maxprofit: " + maxProfit);
+	System.out.println("bestnum = " + bestNum);
+	
+	//for (int i = 1; i <= bestNum; i++)
+	    //System.out.println("bestSet at index " + i + " = " + bestSet.get(i));
+	
+    }
+    
+    
     public static void main(String[] args){
 	File input = new File(args[0]);
-        
 	BufferedWriter out = null;
 	try{
 	    Scanner scanner = new Scanner(input);
 	    while (scanner.hasNextInt()){
+		ArrayList<pair> knapsack = new ArrayList<pair>();
 		int numItems = scanner.nextInt();
 		int capacity = scanner.nextInt();
   
 		for (int i = 0; i < numItems; i++)
 		    knapsack.add(new pair(scanner.nextInt(), scanner.nextInt(), i+1));
 
-	        profit p = algo1(capacity, knapsack);
-		System.out.println(p.totalProfit);
-		algo2(capacity, knapsack);
+	        //profit p = algo1(capacity, knapsack);
+		//System.out.println(p.totalProfit);
+		//algo2(capacity, knapsack);
 		//knapsack.clear();
+
+		ArrayList<pair> copy = new ArrayList<>();
+		for (pair p : knapsack) copy.add(p);
+		Collections.sort(copy, new Comparator<pair>(){
+			@Override
+			public int compare(pair a, pair b){
+			    return Float.compare((float) (b.profit / b.weight), (float) (a.profit / a.weight));
+			}
+		    });
+
+		for (int i = 0; i < copy.size(); i++){
+		    include.add("null");
+		    bestSet.add("null");
+		}
 		
+		for (pair p : copy)
+		    System.out.println("weight = " + p.weight + " profit = " + p.profit + " position = " + p.position);
 
+		backtracking(capacity, numItems, copy);
+		System.out.println("-------------------");
+		//include.clear();
+		//bestSet.clear();
+		//System.out.println(upperBound(0, 0, 0, copy, capacity, numItems));
 
-	    /*
+		/*
 	    out = new BufferedWriter(new FileWriter("output.txt"));
 	    Scanner scanner2 = new Scanner(pricesFile);
 	    while (scanner2.hasNext()){
