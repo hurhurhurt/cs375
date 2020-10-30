@@ -32,8 +32,8 @@ class pair{
 
 }
 class program3{
-    public static ArrayList<String> bestSet = new ArrayList<String>();
-    public static ArrayList<String> include = new ArrayList<String>();
+    public static ArrayList<Boolean> bestSet = new ArrayList<Boolean>();
+    public static ArrayList<Boolean> include = new ArrayList<Boolean>();
     public static int bestNum = -1;
     public static int maxProfit = -1;
     
@@ -81,11 +81,9 @@ class program3{
 	}
 	
 	if (algo1.totalProfit > bestSoFar.profit){
-	    System.out.println(algo1.totalProfit);
 	    return algo1;
 	}
 	else{
-	    System.out.println(bestSoFar.profit);
 	    return new profit(bestSoFar.profit, new ArrayList<>(Arrays.asList(bestSoFar.position)));
 	}
     }
@@ -128,31 +126,48 @@ class program3{
 	    bestSet = include;
 	}
 	if (promising(index, weight, profit, copy, capacity, size)){
-	    include.set(index+1, "yes");
+	    include.set(index+1, true);
 	    knapsack(index+1, profit + copy.get(index+1).profit, weight + copy.get(index+1).weight, copy, capacity, size);
-	    include.set(index+1, "no");
+	    include.set(index+1, false);
 	    knapsack(index+1, profit, weight, copy, capacity, size);
 	}
     }
     
     public static void backtracking(int capacity, int size, ArrayList<pair> copy){	
-	bestNum = 0;
-	maxProfit = algo2(capacity, copy).totalProfit;
+	profit p = algo2(capacity, copy);
+	maxProfit = p.totalProfit;
+	for (int po : p.positions)
+	    bestSet.set(po-1, true);
+	bestNum = p.positions.size();
+	
 	knapsack(-1,0,0, copy, capacity, size);
-	System.out.println("maxprofit: " + maxProfit);
-	System.out.println("bestnum = " + bestNum);
-	
-	//for (int i = 1; i <= bestNum; i++)
-	    //System.out.println("bestSet at index " + i + " = " + bestSet.get(i));
-	
     }
-    
     
     public static void main(String[] args){
 	File input = new File(args[0]);
-	BufferedWriter out = null;
+	BufferedWriter out1 = null;
+	BufferedWriter out2 = null;
 	try{
 	    Scanner scanner = new Scanner(input);
+	    if (args[0].matches("smallInput.txt")){
+		out1 = new BufferedWriter(new FileWriter("smallOutputGreedy2.txt"));
+		out2 = new BufferedWriter(new FileWriter("smallOutputBacktracking.txt"));
+	    }
+	    else if (args[0].matches("Input.txt")){
+		out1 = new BufferedWriter(new FileWriter("outputGreedy2.txt"));
+		out2 = new BufferedWriter(new FileWriter("outputBacktracking.txt"));
+	    }
+	    else if (args[0].matches("mediumInput.txt")){
+		out1 = new BufferedWriter(new FileWriter("mediumOutputGreedy2.txt"));
+		out2 = new BufferedWriter(new FileWriter("mediumOutputBacktracking.txt"));
+	    }
+	    else if (args[0].matches("badGreedyInput.txt")){
+		out1 = new BufferedWriter(new FileWriter("outputbadGreedy1.txt"));
+		out2 = new BufferedWriter(new FileWriter("outputbadGreedy2.txt"));
+	    }
+	    else if (args[0].matches("badImprovedGreedyInput.txt")){
+		out1 = new BufferedWriter(new FileWriter("outputbadImprovedGreedy2.txt"));
+	    }
 	    while (scanner.hasNextInt()){
 		ArrayList<pair> knapsack = new ArrayList<pair>();
 		int numItems = scanner.nextInt();
@@ -160,11 +175,6 @@ class program3{
   
 		for (int i = 0; i < numItems; i++)
 		    knapsack.add(new pair(scanner.nextInt(), scanner.nextInt(), i+1));
-
-	        //profit p = algo1(capacity, knapsack);
-		//System.out.println(p.totalProfit);
-		//algo2(capacity, knapsack);
-		//knapsack.clear();
 
 		ArrayList<pair> copy = new ArrayList<>();
 		for (pair p : knapsack) copy.add(p);
@@ -175,64 +185,140 @@ class program3{
 			}
 		    });
 
-		for (int i = 0; i < copy.size(); i++){
-		    include.add("null");
-		    bestSet.add("null");
-		}
-		
-		for (pair p : copy)
-		    System.out.println("weight = " + p.weight + " profit = " + p.profit + " position = " + p.position);
+		if (args[0].matches("smallInput.txt")){
+		    // Greedy 2
+		    long start = System.nanoTime();
+		    profit p = algo2(capacity, knapsack);
+		    float duration = ((System.nanoTime() - start)/ (float)1000000);
+		    
+		    out1.write(numItems + " " + p.totalProfit + " " + duration + " ");
+		    for (int i : p.positions)
+			out1.write(i + " ");
+		    out1.write("\n");
 
-		backtracking(capacity, numItems, copy);
-		System.out.println("-------------------");
-		//include.clear();
-		//bestSet.clear();
-		//System.out.println(upperBound(0, 0, 0, copy, capacity, numItems));
-
-		/*
-	    out = new BufferedWriter(new FileWriter("output.txt"));
-	    Scanner scanner2 = new Scanner(pricesFile);
-	    while (scanner2.hasNext()){
-		HashMap<String, Integer> price =  new HashMap<String, Integer>();
-		int numCards = scanner2.nextInt();
-		int budget = scanner2.nextInt();
-		for (int i = 0; i < numCards; i++){
-		    price.put(scanner2.next(), scanner2.nextInt());
-		}
-		long start = System.nanoTime();
-		profit profits = ComputeMaxProfit(price, budget);
-		float duration = ((System.nanoTime() - start)/ (float)1000000);
-		try{
-		    out.write(Integer.toString(numCards) + " ");
-		    out.write(Integer.toString(profits.maxProfit) + " ");
-		    out.write(Integer.toString(profits.maxSize) + " ");
-		    out.write(Float.toString(duration) + "\n");
-		    for (String s : profits.cards.keySet()){
-			out.write(s + "\n");
+		    // Backtracking
+		    for (int i = 0; i <= copy.size(); i++){
+			include.add(false);
+			bestSet.add(false);
 		    }
-		    out.write("\n");
+		    
+		    long start2 = System.nanoTime();
+		    backtracking(capacity, numItems, copy);
+		    float duration2 = ((System.nanoTime() - start)/ (float)1000000);
+		    out2.write(numItems + " " + maxProfit + " " + duration2 + " ");
+		    for (int i = 0; i <= bestNum; i++)
+			if (bestSet.get(i) == true) out2.write(copy.get(i).position + " ");
+		    out2.write("\n");
+		    bestSet.clear();
+		    include.clear();
 		}
-		catch (Exception e){
-		    e.printStackTrace();
+
+		else if (args[0].matches("Input.txt")){
+		    // Greedy 2
+		    long start = System.nanoTime();
+		    profit p = algo2(capacity, knapsack);
+		    float duration = ((System.nanoTime() - start)/ (float)1000000);
+		    out1.write(numItems + " " + p.totalProfit + " " + duration + " ");
+		    for (int i : p.positions)
+			out1.write(i + " ");
+		    out1.write("\n");
+
+		    // Backtracking
+		    for (int i = 0; i <= copy.size(); i++){
+			include.add(false);
+			bestSet.add(false);
+		    }
+		    
+		    long start2 = System.nanoTime();
+		    backtracking(capacity, numItems, copy);
+		    float duration2 = ((System.nanoTime() - start)/ (float)1000000);
+		    out2.write(numItems + " " + maxProfit + " " + duration2 + " ");
+		    for (int i = 0; i <= bestNum; i++)
+			if (bestSet.get(i) == true) out2.write(copy.get(i).position + " ");
+		    out2.write("\n");
+		    bestSet.clear();
+		    include.clear();
 		}
-	    }
-	    */
+
+		else if (args[0].matches("mediumInput.txt")){
+		    // Greedy 2
+		    long start = System.nanoTime();
+		    profit p = algo2(capacity, knapsack);
+		    float duration = ((System.nanoTime() - start)/ (float)1000000);
+		    out1.write(numItems + " " + p.totalProfit + " " + duration + " ");
+		    for (int i : p.positions)
+			out1.write(i + " ");
+		    out1.write("\n");
+
+		    // Backtracking
+		    for (int i = 0; i <= copy.size(); i++){
+			include.add(true);
+			bestSet.add(true);
+		    }
+
+		    long start2 = System.nanoTime();
+		    backtracking(capacity, numItems, copy);
+		    float duration2 = ((System.nanoTime() - start)/ (float)1000000);
+		    out2.write(numItems + " " + maxProfit + " " + duration2 + " ");
+		    for (int i = 0; i < bestNum; i++)
+			if (bestSet.get(i) == true) out2.write(copy.get(i).position + " ");
+		    out2.write("\n");
+		    bestSet.clear();
+		    include.clear();
+
+		}
+		else if (args[0].matches("badGreedyInput.txt")){
+		    // Greedy 1
+		    long start = System.nanoTime();
+		    profit p = algo1(capacity, knapsack);
+		    float duration = ((System.nanoTime() - start)/ (float)1000000);
+		    out1.write(numItems + " " + p.totalProfit + " " + duration + " ");
+		    for (int i : p.positions)
+			out1.write(i + " ");
+		    out1.write("\n");
+
+		    // Greedy 2
+		    long start2 = System.nanoTime();
+		    profit po = algo2(capacity, knapsack);
+		    float duration2 = ((System.nanoTime() - start)/ (float)1000000);
+		    out2.write(numItems + " " + po.totalProfit + " " + duration2 + " ");
+		    for (int i : po.positions)
+			out2.write(i + " ");
+		    out2.write("\n");
+
+		}
+
+		else if (args[0].matches("badImprovedGreedyInput.txt")){
+		    long start = System.nanoTime();
+		    profit p = algo2(capacity, knapsack);
+		    float duration = ((System.nanoTime() - start)/ (float)1000000);
+		    out1.write(numItems + " " + p.totalProfit + " " + duration + " ");
+		    for (int i : p.positions)
+			out1.write(i + " ");
+		    out1.write("\n");
+		}
 	    }
 	}
 	catch (Exception e){
 	    e.printStackTrace();
-	}/*
+	}
 	finally{
 	    try{
-		if (out != null){
-		    out.close();
+		if (out1 != null){
+		    out1.close();
+		}
+	    }
+	    catch(Exception e){
+		e.printStackTrace();
+	    }
+	    try{
+		if (out2 != null){
+		    out2.close();
 		}
 	    }
 	    catch(Exception e){
 		e.printStackTrace();
 	    }
 	}
-    }
-	 */
     }
 }
