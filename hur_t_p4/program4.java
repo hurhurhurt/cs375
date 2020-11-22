@@ -19,7 +19,8 @@ class pair{
     }
 }
 
-class program4{    
+class program4{
+    // DP ALGO STARTS HERE
     public static int max(int a, int b){
 	return (a > b) ? a : b;
     }
@@ -41,7 +42,7 @@ class program4{
 	matrix[pos][capacity] = max(profit, profit2);
 	return matrix[pos][capacity];
     }
-    
+    // AND HERE IS THE MAIN METHOD :)
     public static void main(String[] args){
 	if (args.length < 2){
 	    System.out.println("ERROR: usage: java program4 [inputfile] [outputfile]");
